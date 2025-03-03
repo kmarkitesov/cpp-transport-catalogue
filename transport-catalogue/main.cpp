@@ -9,24 +9,7 @@ using namespace std;
 int main() {
     transport::catalogue::TransportCatalogue catalogue;
 
-    int base_request_count;
-    cin >> base_request_count >> ws;
+    transport::input::ReadBaseRequests(std::cin, catalogue);
 
-    {
-        transport::input::InputReader reader;
-        for (int i = 0; i < base_request_count; ++i) {
-            string line;
-            getline(cin, line);
-            reader.ParseLine(line);
-        }
-        reader.ApplyCommands(catalogue);
-    }
-
-    int stat_request_count;
-    cin >> stat_request_count >> ws;
-    for (int i = 0; i < stat_request_count; ++i) {
-        string line;
-        getline(cin, line);
-      transport::output::ParseAndPrintStat(catalogue, line, cout);
-    }
+    transport::output::ReadStatRequests(std::cin, std::cout, catalogue);
 }

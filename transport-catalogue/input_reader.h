@@ -1,4 +1,5 @@
 #pragma once
+#include <iostream>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -39,4 +40,5 @@ namespace transport::input {
         std::vector<CommandDescription> commands_;
     };
     
+    void ReadBaseRequests(std::istream& input, catalogue::TransportCatalogue& catalogue);
 }

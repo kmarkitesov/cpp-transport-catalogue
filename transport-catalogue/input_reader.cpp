@@ -120,4 +120,18 @@ namespace transport::input {
         }
     }
 
+    void ReadBaseRequests(std::istream& input, catalogue::TransportCatalogue& catalogue) {
+        int base_request_count;
+        input >> base_request_count >> std::ws;
+
+        {
+            transport::input::InputReader reader;
+            for (int i = 0; i < base_request_count; ++i) {
+                std::string line;
+                getline(input, line);
+                reader.ParseLine(line);
+            }
+            reader.ApplyCommands(catalogue);
+        }
+    }
 }

@@ -12,5 +12,5 @@ namespace transport::output {
 
     void PrintBusInfo(const catalogue::TransportCatalogue& transport_catalogue, std::string_view bus_name, std::ostream& output);
     void PrintStopInfo(const catalogue::TransportCatalogue& transport_catalogue, std::string_view stop_name, std::ostream& output);
-
+    void ReadStatRequests(std::istream& input, std::ostream& output, const catalogue::TransportCatalogue& catalogue);
 }

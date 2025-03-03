@@ -7,13 +7,14 @@
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
+#include <set>
 
 namespace transport::catalogue {
 
     struct Stop{
         std::string name;
         geo::Coordinates coords;
-        std::unordered_set<std::string> buses;
+        std::set<std::string> buses;
     };
 
     struct Bus{
@@ -35,7 +36,7 @@ namespace transport::catalogue {
         const Stop* FindStop(const std::string_view& stopName) const;
         Stop* FindStop(const std::string_view& stopName);
         BusInfo GetBusInfo(std::string_view& busName) const;
-        std::vector<std::string_view> GetBusesByStop(std::string_view stopName) const;
+        const std::set<std::string>& GetBusesByStop(std::string_view stopName) const;
 
     private:
         std::deque<Stop> stops_;

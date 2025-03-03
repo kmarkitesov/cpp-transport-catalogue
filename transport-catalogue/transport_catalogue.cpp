@@ -48,7 +48,7 @@ namespace transport::catalogue {
             return info;
         }
 
-        std::unordered_set<const Stop*> uniqueStops;
+        std::set<const Stop*> uniqueStops;
         for(const auto& stop : bus->stops){
             uniqueStops.insert(stop);
         }
@@ -64,15 +64,14 @@ namespace transport::catalogue {
         return info;
     }
 
-    std::vector<std::string_view> TransportCatalogue::GetBusesByStop(std::string_view stopName) const{
+    const std::set<std::string>& TransportCatalogue::GetBusesByStop(std::string_view stopName) const{
+        static const std::set<std::string> empty_set;
         const Stop* stop = FindStop(stopName);
         if(!stop || stop->buses.empty()){
-            return {};
+            return empty_set;
         }
 
-        std::vector<std::string_view> buses(stop->buses.begin(), stop->buses.end());
-        std::sort(buses.begin(), buses.end());
-        return buses;
+        return stop->buses;
     }
 
 }

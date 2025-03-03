@@ -56,4 +56,14 @@ namespace transport::output {
         output << std::endl;
     }
 
+    void ReadStatRequests(std::istream& input, std::ostream& output, const catalogue::TransportCatalogue& catalogue) {
+        int stat_request_count;
+        input >> stat_request_count >> std::ws;
+
+        for (int i = 0; i < stat_request_count; ++i) {
+            std::string line;
+            std::getline(input, line);
+            ParseAndPrintStat(catalogue, line, output);
+        }
+    }
 }
