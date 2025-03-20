@@ -76,6 +76,25 @@ namespace transport::input {
         return results;
     }
 
+    std::unordered_map<std::string_view, double> ParseDistances(const std::string_view& description) {
+        std::unordered_map<std::string_view, double> distances;
+        const std::string_view m_to_str = "m to ";
+        auto parts = Split(description, ',');
+        for(auto& part : parts){
+            part = Trim(part);
+            size_t m_pos = part.find(m_to_str);
+
+            if(m_pos != std::string_view::npos){
+                size_t start = 0;
+                size_t end = m_pos;
+                double distance = std::stod(std::string(part.substr(start, end-start)));
+                std::string_view neighbor = part.substr(m_pos + m_to_str.size());
+                distances[neighbor] = distance;
+            }
+        }
+        return distances;
+    }
+
     CommandDescription ParseCommandDescription(std::string_view line) {
         auto colon_pos = line.find(':');
         if (colon_pos == line.npos) {
@@ -111,6 +130,19 @@ namespace transport::input {
                 catalogue.AddStop(command.id, coordinates);
             }
         }
+
+        for (const auto& command : commands_) {
+        if (command.command == "Stop") {
+            auto distances = ParseDistances(command.description);
+            transport::catalogue::Stop* stop = catalogue.FindStop(command.id);
+            for (const auto& [neighbor, distance] : distances) {
+                    transport::catalogue::Stop* neighborStop = catalogue.FindStop(neighbor);
+                    if (stop && neighborStop) {
+                        catalogue.SetDistanceBetweenStops(stop, neighborStop, distance);
+                    }
+                }
+        }
+    }
 
         for(const auto& command : commands_){
             if(command.command == "Bus"){

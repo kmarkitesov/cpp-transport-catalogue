@@ -29,11 +29,13 @@ namespace transport::output {
             output << "Bus " << bus_name << ": not found" << std::endl;
             return;
         }
+
+        double curvature = info.routeLength  / info.geoDistance;
         output << "Bus " << bus_name << ": " 
             << info.stopsCount << " stops on route, " 
             << info.uniqueStops << " unique stops, " 
-            << std::fixed << std::setprecision(6) 
-            << info.routeLength << " route length" << std::endl;
+            << info.routeLength << " route length, "
+            << std::fixed << std::setprecision(5) << curvature << " curvature" << std::endl;
     }
 
     void PrintStopInfo(const catalogue::TransportCatalogue& transport_catalogue, std::string_view stop_name, std::ostream& output) {

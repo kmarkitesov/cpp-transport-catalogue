@@ -54,13 +54,17 @@ namespace transport::catalogue {
         }
 
         double length = 0.0;
+        std::vector<Stop*> routeStops;
+        routeStops.push_back(bus->stops.front());
         for(size_t i = 1; i < bus->stops.size(); ++i){
-            length += ComputeDistance(bus->stops[i-1]->coords, bus->stops[i]->coords);
+            length += GetDistanceBetweenStops(bus->stops[i-1], bus->stops[i]);
+            routeStops.push_back(bus->stops[i]);
         }
 
         info.stopsCount = static_cast<int>(bus->stops.size());
         info.uniqueStops = static_cast<int>(uniqueStops.size());
-        info.routeLength = length;
+        info.routeLength = CalculateRouteLength(*bus);
+        info.geoDistance = CalculateGeoDistance(*bus);
         return info;
     }
 
@@ -74,4 +78,37 @@ namespace transport::catalogue {
         return stop->buses;
     }
 
+    void TransportCatalogue::SetDistanceBetweenStops(const Stop* from, const Stop* to,const double distance){
+        distances_[{from, to}] = distance;
+    }
+
+    double TransportCatalogue::GetDistanceBetweenStops(const Stop* from, const Stop* to) const{
+        auto it = distances_.find({from, to});
+        if (it != distances_.end()) {
+            return it->second;
+        }
+
+        it = distances_.find({to, from});
+        if (it != distances_.end()) {
+            return it->second;
+        }
+
+        return 0.0;
+    }
+
+    double TransportCatalogue::CalculateRouteLength(const Bus& bus) const {
+        double total_route_length = 0.0;
+        for (size_t i = 1; i < bus.stops.size(); ++i) {
+            total_route_length += GetDistanceBetweenStops(bus.stops[i - 1], bus.stops[i]);
+        }
+        return total_route_length;
+    }
+
+    double TransportCatalogue::CalculateGeoDistance(const Bus& bus) const {
+        double geo_distance = 0.0;
+        for (size_t i = 1; i < bus.stops.size(); ++i) {
+            geo_distance += ComputeDistance(bus.stops[i - 1]->coords, bus.stops[i]->coords);
+        }
+        return geo_distance;
+    }
 }
