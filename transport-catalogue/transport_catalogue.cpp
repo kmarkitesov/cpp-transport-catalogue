@@ -10,8 +10,8 @@ namespace transport::catalogue {
         stopsByName_[stopPtr->name] = stopPtr;
     }
 
-    void TransportCatalogue::AddBus(const std::string_view& name, const std::vector<std::string_view>& stopNames){
-        buses_.push_back(Bus{std::string(name), {}});
+    void TransportCatalogue::AddBus(const std::string_view& name, const std::vector<std::string_view>& stopNames, const bool is_roundtrip){
+        buses_.push_back(Bus{std::string(name), {}, is_roundtrip});
         Bus* busPtr = &buses_.back();
         busesByName_[busPtr->name] = busPtr;
 
@@ -20,6 +20,18 @@ namespace transport::catalogue {
             if (stopPtr) {
                 busPtr->stops.push_back(stopPtr);
                 stopPtr->buses.insert(busPtr->name);
+            }
+        }
+
+        busPtr->originalStopCount = busPtr->stops.size();
+
+        if (!is_roundtrip) {
+            for (int i = static_cast<int>(busPtr->stops.size()) - 2; i >= 0; --i) {
+                busPtr->stops.push_back(busPtr->stops[i]);
+            }
+        } else {
+            if (!busPtr->stops.empty() && busPtr->stops.front() != busPtr->stops.back()) {
+                busPtr->stops.push_back(busPtr->stops.front());
             }
         }
     }
@@ -51,14 +63,6 @@ namespace transport::catalogue {
         std::set<const Stop*> uniqueStops;
         for(const auto& stop : bus->stops){
             uniqueStops.insert(stop);
-        }
-
-        double length = 0.0;
-        std::vector<Stop*> routeStops;
-        routeStops.push_back(bus->stops.front());
-        for(size_t i = 1; i < bus->stops.size(); ++i){
-            length += GetDistanceBetweenStops(bus->stops[i-1], bus->stops[i]);
-            routeStops.push_back(bus->stops[i]);
         }
 
         info.stopsCount = static_cast<int>(bus->stops.size());
@@ -110,5 +114,13 @@ namespace transport::catalogue {
             geo_distance += ComputeDistance(bus.stops[i - 1]->coords, bus.stops[i]->coords);
         }
         return geo_distance;
+    }
+
+    std::vector<std::string> TransportCatalogue::GetBusNames() const {
+        std::vector<std::string> bus_names;
+        for (const auto& bus : buses_) {
+            bus_names.push_back(bus.name);
+        }
+        return bus_names;
     }
 }

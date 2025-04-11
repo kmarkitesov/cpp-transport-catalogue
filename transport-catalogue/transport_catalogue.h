@@ -9,30 +9,14 @@
 #include <unordered_set>
 #include <set>
 
+#include "domain.h"
+
 namespace transport::catalogue {
-
-    struct Stop{
-        std::string name;
-        geo::Coordinates coords;
-        std::set<std::string> buses;
-    };
-
-    struct Bus{
-        std::string name;
-        std::vector<Stop*> stops;
-    };
-
-    struct BusInfo{
-        int stopsCount = 0;
-        int uniqueStops = 0;
-        double routeLength = 0.0;
-        double geoDistance = 0.0;
-    };
 
     class TransportCatalogue {
     public:
         void AddStop(const std::string_view& name, const geo::Coordinates& coords);
-        void AddBus(const std::string_view& name, const std::vector<std::string_view>& stopNames);
+        void AddBus(const std::string_view& name, const std::vector<std::string_view>& stopNames, const bool is_roundtrip = false);
         const Bus* FindBus(const std::string_view& busName) const;
         const Stop* FindStop(const std::string_view& stopName) const;
         Stop* FindStop(const std::string_view& stopName);
@@ -40,6 +24,8 @@ namespace transport::catalogue {
         const std::set<std::string>& GetBusesByStop(std::string_view stopName) const;
         void SetDistanceBetweenStops(const Stop* from, const Stop* to, const double distance);
         double GetDistanceBetweenStops(const Stop* from, const Stop* to) const;
+        const std::deque<Bus>& GetBuses() const { return buses_; }
+        std::vector<std::string> GetBusNames() const;
 
     private:
         struct StopPairHash {
