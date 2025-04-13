@@ -15,18 +15,18 @@ int main() {
     json::Document input_doc = json::Load(input_stream);
     const json::Dict& root = input_doc.GetRoot().AsMap();;
     // Построение базы данных транспортного справочника
+    transport::catalogue::TransportCatalogue catalogue;
+    json_reader::JSONReader reader(catalogue);
     const json::Array& base_requests = root.at("base_requests").AsArray();
     const json::Array& stat_requests = root.at("stat_requests").AsArray();
     const json::Dict& render_settings_json = root.at("render_settings").AsMap();
-    transport::catalogue::TransportCatalogue catalogue;
     // Обрабатываем запросы base_requests (остановки и маршруты)
-    json_reader::ProcessBaseRequests(base_requests, catalogue);
+    reader.ProcessBaseRequests(base_requests);
     // Парсинг render_settings из JSON
-    renderer::RenderSettings settings = json_reader::ParseRenderSettings(render_settings_json);
+    renderer::RenderSettings settings = reader.ParseRenderSettings(render_settings_json);
     renderer::MapRenderer renderer(settings);
-    RequestHandler handler(catalogue, renderer);
     // Обработка запросов stat_requests и формирование ответа
-    json::Array responses = json_reader::ProcessStatRequests(stat_requests, handler);
+    json::Array responses = reader.ProcessStatRequests(stat_requests, renderer);
     json::Document response_doc(responses);
     json::Print(response_doc, std::cout);
     std::cout << std::endl;

@@ -10,7 +10,7 @@ namespace transport::catalogue {
         stopsByName_[stopPtr->name] = stopPtr;
     }
 
-    void TransportCatalogue::AddBus(const std::string_view& name, const std::vector<std::string_view>& stopNames, const bool is_roundtrip){
+    void TransportCatalogue::AddBus(const std::string_view& name, const std::vector<std::string>& stopNames, const bool is_roundtrip){
         buses_.push_back(Bus{std::string(name), {}, is_roundtrip});
         Bus* busPtr = &buses_.back();
         busesByName_[busPtr->name] = busPtr;

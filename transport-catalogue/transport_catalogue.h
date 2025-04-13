@@ -16,7 +16,7 @@ namespace transport::catalogue {
     class TransportCatalogue {
     public:
         void AddStop(const std::string_view& name, const geo::Coordinates& coords);
-        void AddBus(const std::string_view& name, const std::vector<std::string_view>& stopNames, const bool is_roundtrip = false);
+        void AddBus(const std::string_view& name, const std::vector<std::string>& stopNames, const bool is_roundtrip = false);
         const Bus* FindBus(const std::string_view& busName) const;
         const Stop* FindStop(const std::string_view& stopName) const;
         Stop* FindStop(const std::string_view& stopName);
