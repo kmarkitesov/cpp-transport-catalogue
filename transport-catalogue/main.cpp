@@ -13,13 +13,13 @@ int main() {
     std::getline(std::cin, input_json, '\0');
     std::istringstream input_stream(input_json);
     json::Document input_doc = json::Load(input_stream);
-    const json::Dict& root = input_doc.GetRoot().AsMap();;
+    const json::Dict& root = input_doc.GetRoot().AsDict();;
     // Построение базы данных транспортного справочника
     transport::catalogue::TransportCatalogue catalogue;
     json_reader::JSONReader reader(catalogue);
     const json::Array& base_requests = root.at("base_requests").AsArray();
     const json::Array& stat_requests = root.at("stat_requests").AsArray();
-    const json::Dict& render_settings_json = root.at("render_settings").AsMap();
+    const json::Dict& render_settings_json = root.at("render_settings").AsDict();
     // Обрабатываем запросы base_requests (остановки и маршруты)
     reader.ProcessBaseRequests(base_requests);
     // Парсинг render_settings из JSON
