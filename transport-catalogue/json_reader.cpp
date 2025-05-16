@@ -35,6 +35,19 @@ constexpr char UNDERLAYER_WIDTH[] = "underlayer_width";
 constexpr char COLOR_PALETTE[] = "color_palette";
 constexpr char MAP[] = "Map";
 constexpr char MAP_KEY[] = "map";
+constexpr char ROUTE[] = "Route";
+constexpr char BUS_VELOCITY[] = "bus_velocity";
+constexpr char BUS_WAIT_TIME[] = "bus_wait_time";
+constexpr char FROM[] = "from";
+constexpr char TO[] = "to";
+constexpr char TOTAL_TIME[] = "total_time";
+constexpr char ITEMS[] = "items";
+constexpr char WAIT[] = "Wait";
+constexpr char STOP_NAME[] = "stop_name";
+constexpr char TIME[] = "time";
+constexpr char BUS_KEY[] = "bus";
+constexpr char SPAN_COUNT[] = "span_count"; 
+
 const std::string NOT_FOUND = "not found";
 
 void JSONReader::ProcessBaseRequests(const json::Array& base_requests) {
@@ -114,6 +127,8 @@ json::Array JSONReader::ProcessStatRequests(const json::Array& stat_requests, co
             responses.emplace_back(HandleBusRequest(request));
         } else if (type == json_reader::MAP) {
             responses.emplace_back(HandleMapRequest(request, renderer));
+        } else if (type == json_reader::ROUTE) {
+            responses.emplace_back(HandleRouteRequest(request));
         }
     }
 
@@ -196,6 +211,17 @@ renderer::RenderSettings JSONReader::ParseRenderSettings(const json::Dict& dict)
     return settings;
 }
 
+transport::RoutingSettings JSONReader::ParseRoutingSettings(const json::Dict& dict) {
+    transport::RoutingSettings settings;
+    settings.bus_velocity = dict.at(json_reader::BUS_VELOCITY).AsDouble();
+    settings.bus_wait_time = dict.at(json_reader::BUS_WAIT_TIME).AsInt();
+    return settings;
+}
+
+void JSONReader::SetRouter(transport::RoutingSettings settings) {
+    router_ = std::make_unique<transport::TransportRouter>(catalogue_, settings);
+}
+
 svg::Color JSONReader::ParseColor(const json::Node& node) {
     if (node.IsString()) {
         return node.AsString();
@@ -222,6 +248,69 @@ svg::Color JSONReader::ParseColor(const json::Node& node) {
 
 svg::Point JSONReader::ParseOffset(const json::Array& arr) {
     return { arr[0].AsDouble(), arr[1].AsDouble() };
+}
+
+json::Dict JSONReader::HandleRouteRequest(const json::Dict& request) {
+    const int request_id = request.at(ID).AsInt();
+    const std::string& from = request.at(FROM).AsString();
+    const std::string& to = request.at(TO).AsString();
+
+    if (!request.count(FROM) || !request.count(TO)) {
+        return BuildRouteErrorResponse(request_id);
+    }
+
+    if (!router_) {
+        return BuildRouteErrorResponse(request_id);
+    }
+
+    auto route = router_->BuildRoute(from, to);
+    if (!route) {
+        return BuildRouteErrorResponse(request_id);
+    }
+
+    return BuildRouteResponse(request_id, *route);
+}
+
+json::Dict JSONReader::BuildRouteErrorResponse(int request_id) const {
+    return json::Builder{}
+        .StartDict()
+        .Key(REQUEST_ID).Value(request_id)
+        .Key(ERROR_MESSAGE).Value(NOT_FOUND)
+        .EndDict().Build().AsDict();
+}
+
+json::Dict JSONReader::BuildRouteResponse(int request_id, const std::vector<transport::RouteItem>& route) const {
+    double total_time = 0.0;
+    for (const auto& item : route) {
+        total_time += item.time;
+    }
+
+    json::Builder builder;
+    auto dict = builder.StartDict();
+    dict.Key(REQUEST_ID).Value(request_id);
+    dict.Key(TOTAL_TIME).Value(total_time);
+    auto array = dict.Key(ITEMS).StartArray();
+
+    for (const auto& item : route) {
+        AppendRouteItem(array, item);
+    }
+
+    return array.EndArray().EndDict().Build().AsDict();
+}
+
+void JSONReader::AppendRouteItem(json::ArrayItemContext& array, const transport::RouteItem& item) const {
+    auto obj = array.StartDict();
+    if (item.type == transport::RouteItem::Type::Wait) {
+        obj.Key(TYPE).Value(WAIT)
+           .Key(STOP_NAME).Value(item.name)
+           .Key(TIME).Value(item.time);
+    } else if (item.type == transport::RouteItem::Type::Bus) {
+        obj.Key(TYPE).Value(BUS)
+           .Key(BUS_KEY).Value(item.name)
+           .Key(SPAN_COUNT).Value(item.span_count)
+           .Key(TIME).Value(item.time);
+    }
+    obj.EndDict();
 }
 
 }  // namespace json_reader

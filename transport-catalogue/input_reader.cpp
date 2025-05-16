@@ -145,12 +145,12 @@ namespace transport::input {
         }
     }
 
-        for(const auto& command : commands_){
-            if(command.command == "Bus"){
-                auto stops = ParseRoute(command.description);
-                catalogue.AddBus(command.id, stops);
-            }
-        }
+        // for(const auto& command : commands_){
+        //     if(command.command == "Bus"){
+        //         auto stops = ParseRoute(command.description);
+        //         catalogue.AddBus(command.id, stops);
+        //     }
+        // }
     }
 
     void ReadBaseRequests(std::istream& input, catalogue::TransportCatalogue& catalogue) {
